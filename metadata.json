@@ -1,0 +1,7 @@
+{
+  "name": "Bloom - MtF Transformation Guide",
+  "description": "A comprehensive, interactive guide for male-to-female transformation, covering makeup, body management, voice training, and posture with AI coaching.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

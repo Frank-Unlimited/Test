@@ -1,0 +1,90 @@
+name: Build and Push to Aliyun ACR
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+env:
+  DOCKER_REGISTRY: crpi-925djdtsud86yqkr.cn-hangzhou.personal.cr.aliyuncs.com
+  IMAGE_NAME: hhc
+  IMAGE_NAMESPACE: hhc510105200301150090
+  DOCKERFILE_PATH: Dockerfile
+  BUILD_CONTEXT: .
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Login to Aliyun Container Registry
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "Logging in to Aliyun ACR..."
+          echo "${{ secrets.ALIYUN_ACR_PASSWORD }}" | docker login ${{ env.DOCKER_REGISTRY }} \
+            --username ${{ secrets.ALIYUN_ACR_USERNAME }} \
+            --password-stdin
+          if [ $? -eq 0 ]; then
+            echo "✓ Successfully logged in to Aliyun ACR"
+          else
+            echo "✗ Failed to authenticate with Aliyun ACR"
+            exit 1
+          fi
+      
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ env.BUILD_CONTEXT }}
+          file: ${{ env.DOCKERFILE_PATH }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+      
+      - name: Display build results
+        run: |
+          echo "=========================================="
+          echo "Build Results"
+          echo "=========================================="
+          
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "✓ Docker image built successfully (not pushed - PR build)"
+            echo ""
+            echo "This is a pull request build. The image was built to verify"
+            echo "the build process but was not pushed to the registry."
+          else
+            echo "✓ Docker image built and pushed successfully"
+            echo ""
+            echo "Registry: ${{ env.DOCKER_REGISTRY }}"
+            echo "Image Path: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/${{ env.IMAGE_NAME }}"
+            echo ""
+            echo "Image Tags:"
+            echo "${{ steps.meta.outputs.tags }}" | sed 's/^/  - /'
+            echo ""
+            echo "To pull this image, run:"
+            echo "  docker pull ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/${{ env.IMAGE_NAME }}:<tag>"
+          fi
+          
+          echo "=========================================="
