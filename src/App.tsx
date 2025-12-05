@@ -4,7 +4,7 @@ import { SECTIONS, ICONS } from './constants';
 import AICoach from './components/AICoach';
 import VoiceVisualizer from './components/VoiceVisualizer';
 import BackgroundEffects from './components/BackgroundEffects';
-import { Menu, X, ChevronRight, Star, ShoppingBag, Ruler, Activity, Dumbbell, Sparkles, Video, PlayCircle, ExternalLink, Shirt, Footprints } from 'lucide-react';
+import { Menu, X, ChevronRight, Star, ShoppingBag, Ruler, Activity, Dumbbell, Sparkles, Video, PlayCircle, ExternalLink, Shirt, Footprints, BookOpen } from 'lucide-react';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>(Tab.HOME);
@@ -199,32 +199,52 @@ const App: React.FC = () => {
     )
   }
 
-  // Video Tutorial Card Component
-  const VideoTutorialCard = ({ title, duration, color, url }: { title: string, duration: string, color: string, url: string }) => (
-    <a 
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group relative rounded-xl overflow-hidden cursor-pointer shadow-sm hover:shadow-lg transition-all transform hover:-translate-y-1 block"
-    >
-      {/* Thumbnail Placeholder */}
-      <div className={`h-32 sm:h-40 w-full ${color} flex items-center justify-center relative`}>
-        <div className="absolute inset-0 bg-black/5 group-hover:bg-black/10 transition-colors" />
-        <PlayCircle className="text-white drop-shadow-lg opacity-90 group-hover:scale-110 transition-all" size={48} />
-        <span className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-md">{duration}</span>
-        <ExternalLink size={16} className="absolute top-2 right-2 text-white opacity-0 group-hover:opacity-90 transition-opacity" />
-      </div>
-      {/* Info */}
-      <div className="bg-white p-3 border border-t-0 border-pink-100 rounded-b-xl">
-        <h4 className="font-bold text-slate-700 text-sm group-hover:text-pink-600 transition-colors line-clamp-1">{title}</h4>
-        <div className="flex items-center gap-1 mt-1">
-            <Video size={12} className="text-pink-400"/>
-            <span className="text-xs text-slate-500">Bilibili 视频</span>
-        </div>
-      </div>
-    </a>
-  );
+  // Video/Resource Tutorial Card Component
+  const VideoTutorialCard = ({ title, duration, color, url }: { title: string, duration?: string, color: string, url: string }) => {
+    let sourceLabel = "在线资源";
+    let Icon = ExternalLink;
+    let iconColor = "text-pink-400";
+    
+    if (url.includes('bilibili')) {
+      sourceLabel = "Bilibili 视频";
+      Icon = Video;
+    } else if (url.includes('toutiao')) {
+      sourceLabel = "头条文章";
+      Icon = BookOpen;
+      iconColor = "text-orange-400";
+    } else if (url.includes('femmesecrets') || url.includes('cosplay')) {
+      sourceLabel = "Web 指南";
+      Icon = BookOpen;
+      iconColor = "text-emerald-400";
+    }
 
+    return (
+      <a 
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="group relative rounded-xl overflow-hidden cursor-pointer shadow-sm hover:shadow-lg transition-all transform hover:-translate-y-1 block h-full flex flex-col"
+      >
+        {/* Thumbnail Placeholder */}
+        <div className={`h-32 sm:h-40 w-full ${color} flex items-center justify-center relative shrink-0`}>
+          <div className="absolute inset-0 bg-black/5 group-hover:bg-black/10 transition-colors" />
+          {sourceLabel.includes("视频") ? 
+             <PlayCircle className="text-white drop-shadow-lg opacity-90 group-hover:scale-110 transition-all" size={48} /> :
+             <ExternalLink className="text-white drop-shadow-lg opacity-90 group-hover:scale-110 transition-all" size={48} />
+          }
+          {duration && <span className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-md">{duration}</span>}
+        </div>
+        {/* Info */}
+        <div className="bg-white p-3 border border-t-0 border-pink-100 rounded-b-xl flex-1 flex flex-col">
+          <h4 className="font-bold text-slate-700 text-sm group-hover:text-pink-600 transition-colors line-clamp-2 leading-relaxed mb-2">{title}</h4>
+          <div className="flex items-center gap-1 mt-auto">
+              <Icon size={12} className={iconColor}/>
+              <span className="text-xs text-slate-500">{sourceLabel}</span>
+          </div>
+        </div>
+      </a>
+    );
+  }
 
   const renderContent = () => {
     const section = SECTIONS[activeTab];
@@ -300,9 +320,9 @@ const App: React.FC = () => {
           {/* Left Column: Content */}
           <div className="lg:col-span-2 space-y-8">
             
-            {/* --- VOICE VISUALIZER --- */}
+            {/* --- VOICE VISUALIZER & CONTENT --- */}
             {activeTab === Tab.VOICE && (
-              <>
+              <div className="space-y-8">
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-purple-100 hover:shadow-md transition-shadow">
                   <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
                     <span className="bg-purple-100 text-purple-500 p-2 rounded-lg text-xl">🎵</span>
@@ -337,47 +357,97 @@ const App: React.FC = () => {
                   </div>
                 </div>
                 <VoiceVisualizer />
-              </>
+                
+                {/* Voice Tutorials */}
+                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-purple-100 hover:shadow-md transition-shadow">
+                   <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                    <Video className="text-purple-500" size={20}/> 伪声进阶指南
+                  </h3>
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <VideoTutorialCard 
+                        title="男伪女声是混声！需要练的！" 
+                        color="bg-purple-100" 
+                        url="https://www.bilibili.com/video/BV1cV4y1j7qU/"
+                      />
+                      <VideoTutorialCard 
+                        title="每个男孩子都可以学会的伪声教程" 
+                        color="bg-violet-100" 
+                        url="https://www.bilibili.com/video/BV14Z4y1o71s/"
+                      />
+                      <VideoTutorialCard 
+                        title="暑假自学伪音必备！600集教程" 
+                        color="bg-fuchsia-100" 
+                        url="https://www.bilibili.com/video/BV1Wg411R7ox/"
+                      />
+                   </div>
+                 </div>
+              </div>
             )}
 
-            {/* --- POSTURE VISUALIZER --- */}
+            {/* --- POSTURE VISUALIZER & CONTENT --- */}
             {activeTab === Tab.POSTURE && (
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-indigo-100 hover:shadow-md transition-shadow">
-                 <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <span className="bg-indigo-100 text-indigo-500 p-2 rounded-lg text-xl">🚶‍♀️</span>
-                    步态示意图：一字步
+              <div className="space-y-8">
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-indigo-100 hover:shadow-md transition-shadow">
+                   <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                      <span className="bg-indigo-100 text-indigo-500 p-2 rounded-lg text-xl">🚶‍♀️</span>
+                      步态示意图：一字步
+                    </h3>
+                    <div className="flex flex-col md:flex-row items-center gap-6">
+                      <div className="w-full md:w-1/2 bg-indigo-50/50 rounded-xl p-6 flex justify-center">
+                         <svg viewBox="0 0 200 150" className="w-full max-w-sm">
+                            <g transform="translate(20, 0)">
+                              <text x="30" y="20" fontSize="12" fill="#64748b" textAnchor="middle">男士步态</text>
+                              <line x1="15" y1="30" x2="15" y2="140" stroke="#94a3b8" strokeWidth="1" strokeDasharray="4,4" />
+                              <line x1="45" y1="30" x2="45" y2="140" stroke="#94a3b8" strokeWidth="1" strokeDasharray="4,4" />
+                              <rect x="5" y="40" width="20" height="35" rx="8" fill="#cbd5e1" />
+                              <rect x="35" y="80" width="20" height="35" rx="8" fill="#cbd5e1" />
+                              <text x="30" y="140" fontSize="10" fill="#94a3b8" textAnchor="middle">双轨平行</text>
+                            </g>
+                            <g transform="translate(120, 0)">
+                              <text x="30" y="20" fontSize="12" fill="#db2777" textAnchor="middle" fontWeight="bold">女士步态</text>
+                              <line x1="30" y1="30" x2="30" y2="140" stroke="#fbcfe8" strokeWidth="2" />
+                              <g transform="rotate(-5, 30, 60)">
+                                 <rect x="20" y="40" width="20" height="35" rx="8" fill="#f472b6" />
+                              </g>
+                              <g transform="rotate(5, 30, 100)">
+                                 <rect x="20" y="80" width="20" height="35" rx="8" fill="#f472b6" />
+                              </g>
+                              <text x="30" y="140" fontSize="10" fill="#db2777" textAnchor="middle">单线行走</text>
+                            </g>
+                         </svg>
+                      </div>
+                      <div className="flex-1 space-y-3">
+                         <ul className="list-disc list-inside text-sm text-slate-600 space-y-2">
+                          <li><strong>落脚点：</strong> 双脚内侧应该落在直线上。</li>
+                          <li><strong>重心：</strong> 移动时，重心完全转换到支撑腿。</li>
+                        </ul>
+                      </div>
+                    </div>
+                </div>
+
+                {/* Posture Resources */}
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-indigo-100 hover:shadow-md transition-shadow">
+                   <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                    <BookOpen className="text-indigo-500" size={20}/> 仪态与伪街指南
                   </h3>
-                  <div className="flex flex-col md:flex-row items-center gap-6">
-                    <div className="w-full md:w-1/2 bg-indigo-50/50 rounded-xl p-6 flex justify-center">
-                       <svg viewBox="0 0 200 150" className="w-full max-w-sm">
-                          <g transform="translate(20, 0)">
-                            <text x="30" y="20" fontSize="12" fill="#64748b" textAnchor="middle">男士步态</text>
-                            <line x1="15" y1="30" x2="15" y2="140" stroke="#94a3b8" strokeWidth="1" strokeDasharray="4,4" />
-                            <line x1="45" y1="30" x2="45" y2="140" stroke="#94a3b8" strokeWidth="1" strokeDasharray="4,4" />
-                            <rect x="5" y="40" width="20" height="35" rx="8" fill="#cbd5e1" />
-                            <rect x="35" y="80" width="20" height="35" rx="8" fill="#cbd5e1" />
-                            <text x="30" y="140" fontSize="10" fill="#94a3b8" textAnchor="middle">双轨平行</text>
-                          </g>
-                          <g transform="translate(120, 0)">
-                            <text x="30" y="20" fontSize="12" fill="#db2777" textAnchor="middle" fontWeight="bold">女士步态</text>
-                            <line x1="30" y1="30" x2="30" y2="140" stroke="#fbcfe8" strokeWidth="2" />
-                            <g transform="rotate(-5, 30, 60)">
-                               <rect x="20" y="40" width="20" height="35" rx="8" fill="#f472b6" />
-                            </g>
-                            <g transform="rotate(5, 30, 100)">
-                               <rect x="20" y="80" width="20" height="35" rx="8" fill="#f472b6" />
-                            </g>
-                            <text x="30" y="140" fontSize="10" fill="#db2777" textAnchor="middle">单线行走</text>
-                          </g>
-                       </svg>
-                    </div>
-                    <div className="flex-1 space-y-3">
-                       <ul className="list-disc list-inside text-sm text-slate-600 space-y-2">
-                        <li><strong>落脚点：</strong> 双脚内侧应该落在直线上。</li>
-                        <li><strong>重心：</strong> 移动时，重心完全转换到支撑腿。</li>
-                      </ul>
-                    </div>
-                  </div>
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <VideoTutorialCard 
+                        title="MTF Feminine Mannerisms: 5 Body Language Dos and Don’ts" 
+                        color="bg-indigo-100" 
+                        url="https://femmesecrets.com/mtf-feminine-mannerisms-5-male-to-female-body-language-dos-and-donts/"
+                      />
+                      <VideoTutorialCard 
+                        title="男生伪街注意事项有哪些" 
+                        color="bg-sky-100" 
+                        url="https://m.toutiao.com/article/7345492332413137465/"
+                      />
+                      <VideoTutorialCard 
+                        title="小男娘第一次女装逛商场【巨社恐】" 
+                        color="bg-cyan-100" 
+                        url="https://www.bilibili.com/video/BV1uV4y1i7rW/"
+                      />
+                   </div>
+                </div>
               </div>
             )}
 
@@ -517,6 +587,30 @@ const App: React.FC = () => {
                          <p className="mt-2 text-sm text-slate-600">真空腹练习深层腹横肌，是缩减腰围的秘密武器。每天早晨空腹进行，吐气收腹保持15-30秒，重复5次。</p>
                       </div>
                   </div>
+
+                  {/* Body Resources */}
+                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-emerald-100 hover:shadow-md transition-shadow">
+                   <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                    <BookOpen className="text-emerald-500" size={20}/> 推荐阅读指南
+                  </h3>
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <VideoTutorialCard 
+                        title="MTF Body Shaping: 5 Ways To Look Thinner" 
+                        color="bg-emerald-100" 
+                        url="https://femmesecrets.com/mtf-body-shaping-5-best-ways-to-look-thinner-instantly/"
+                      />
+                      <VideoTutorialCard 
+                        title="Top 3 Exercises for a Slimmer Waist (MTF)" 
+                        color="bg-teal-100" 
+                        url="https://femmesecrets.com/feminizing-workout-routines-top-3-exercises-for-a-slimmer-waist-mtf/"
+                      />
+                      <VideoTutorialCard 
+                        title="For Men: Creating Curves 1: Hips & Thighs" 
+                        color="bg-green-100" 
+                        url="https://www.cosplay.com/showthread.php?t=345742"
+                      />
+                   </div>
+                 </div>
                </div>
             )}
 
@@ -549,6 +643,30 @@ const App: React.FC = () => {
                          </p>
                       </div>
                   </div>
+
+                  {/* Fashion Resources */}
+                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-blue-100 hover:shadow-md transition-shadow">
+                   <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                    <Video className="text-blue-500" size={20}/> 穿搭灵感与教程
+                  </h3>
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <VideoTutorialCard 
+                        title="男生穿女装：自我表达全维度指南" 
+                        color="bg-orange-100" 
+                        url="https://m.toutiao.com/article/7419754531682715192/"
+                      />
+                      <VideoTutorialCard 
+                        title="你一定要学的穿搭小 tips! 这期不看必后悔" 
+                        color="bg-blue-100" 
+                        url="https://www.bilibili.com/video/BV18G411x7Xm/"
+                      />
+                      <VideoTutorialCard 
+                        title="男孩子女装也可以很甜（照片在最后）" 
+                        color="bg-pink-100" 
+                        url="https://www.bilibili.com/video/BV1244y1Z7vD/"
+                      />
+                   </div>
+                 </div>
                </div>
             )}
             

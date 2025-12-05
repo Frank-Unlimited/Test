@@ -3,20 +3,9 @@ import { GoogleGenAI, Chat } from "@google/genai";
 let genAI: GoogleGenAI | null = null;
 let chatSession: Chat | null = null;
 
-// Get API key from runtime environment (Docker) or build-time environment (dev)
-const getApiKey = (): string | undefined => {
-  // Check runtime environment (injected by Docker)
-  if (typeof window !== 'undefined' && (window as any).ENV?.GEMINI_API_KEY) {
-    return (window as any).ENV.GEMINI_API_KEY;
-  }
-  // Fallback to build-time environment (for local development)
-  return process.env.API_KEY || process.env.GEMINI_API_KEY;
-};
-
 const initializeGenAI = () => {
-  const apiKey = getApiKey();
-  if (!genAI && apiKey) {
-    genAI = new GoogleGenAI({ apiKey });
+  if (!genAI && process.env.API_KEY) {
+    genAI = new GoogleGenAI({ apiKey: process.env.API_KEY });
   }
   return genAI;
 };
