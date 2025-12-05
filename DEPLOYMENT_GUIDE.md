@@ -104,13 +104,25 @@ docker build -t hhc:local .
 
 构建成功后，运行容器：
 
+**方式 1：不带 API Key（仅测试页面加载）**
 ```bash
 docker run -p 8080:80 hhc:local
 ```
 
+**方式 2：带 API Key（完整功能）**
+```bash
+docker run -p 8080:80 -e GEMINI_API_KEY=your_actual_api_key_here hhc:local
+```
+
 **参数说明：**
 - `-p 8080:80`：将容器的 80 端口映射到主机的 8080 端口
+- `-e GEMINI_API_KEY=...`：在运行时注入 API key（推荐方式，更安全）
 - `hhc:local`：使用刚才构建的镜像
+
+**重要安全说明：**
+- API key 现在通过运行时环境变量注入，不会硬编码在镜像中
+- 这意味着镜像可以安全地推送到公共或私有仓库
+- 每个部署环境可以使用不同的 API key
 
 ### 2.4 访问应用
 
@@ -118,15 +130,19 @@ docker run -p 8080:80 hhc:local
 2. 访问：http://localhost:8080
 3. 你应该能看到应用界面
 
-**注意：** 由于 `.env.local` 中的 API key 是占位符，应用的 AI 功能可能无法正常工作。这是预期的，只要页面能加载就说明 Docker 镜像构建成功。
+**功能测试：**
+- 如果没有提供 API key，页面会加载但 AI 功能无法使用
+- 如果提供了有效的 API key，所有功能都应该正常工作
 
 ### 2.5 后台运行容器（可选）
 
 如果想让容器在后台运行：
 
 ```bash
-# 启动容器（后台模式）
-docker run -d -p 8080:80 --name hhc-app hhc:local
+# 启动容器（后台模式，带 API key）
+docker run -d -p 8080:80 --name hhc-app \
+  -e GEMINI_API_KEY=your_actual_api_key_here \
+  hhc:local
 
 # 查看运行中的容器
 docker ps
@@ -159,6 +175,40 @@ docker system prune -a
 
 ---
 
+## 第三步：从阿里云 ACR 拉取并运行镜像
+
+### 3.1 登录阿里云 ACR
+
+在本地机器上登录阿里云容器镜像服务：
+
+```bash
+docker login crpi-925djdtsud86yqkr.cn-hangzhou.personal.cr.aliyuncs.com
+```
+
+输入你的阿里云 ACR 用户名和密码。
+
+### 3.2 拉取镜像
+
+```bash
+docker pull crpi-925djdtsud86yqkr.cn-hangzhou.personal.cr.aliyuncs.com/hhc510105200301150090/hhc:latest
+```
+
+### 3.3 运行从 ACR 拉取的镜像
+
+```bash
+docker run -d -p 8080:80 --name hhc-prod \
+  -e GEMINI_API_KEY=your_actual_api_key_here \
+  crpi-925djdtsud86yqkr.cn-hangzhou.personal.cr.aliyuncs.com/hhc510105200301150090/hhc:latest
+```
+
+**重要：** 必须通过 `-e GEMINI_API_KEY=your_key` 提供 API key，镜像本身不包含敏感信息。
+
+### 3.4 验证部署
+
+访问 http://localhost:8080 确认应用正常运行。
+
+---
+
 ## 常见问题
 
 ### Q1: Docker 构建失败，提示找不到文件
@@ -186,9 +236,21 @@ docker system prune -a
 ### Q4: 镜像构建成功但应用不工作
 
 **解决方案：**
-- 这可能是因为 API key 是占位符
-- 在 `.env.local` 中设置真实的 `GEMINI_API_KEY`
-- 重新构建镜像
+- 确保在运行容器时提供了有效的 API key：`-e GEMINI_API_KEY=your_key`
+- 检查 API key 是否有效（在阿里云控制台验证）
+- 查看浏览器控制台是否有错误信息
+
+### Q5: Docker 构建时出现安全警告
+
+**警告信息：**
+```
+SecretsUsedInArgOrEnv: Do not use ARG or ENV instructions for sensitive data
+```
+
+**说明：**
+- 这个警告已经解决！新版本的 Dockerfile 不再在构建时使用 API key
+- API key 现在通过运行时环境变量注入，更加安全
+- 镜像本身不包含任何敏感信息
 
 ---
 
