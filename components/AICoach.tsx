@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, Bot, User } from 'lucide-react';
-import { startChat, sendMessage } from '../services/geminiService';
+import { startChat, sendMessage, hasApiKey } from '../services/geminiService';
 import { ChatMessage } from '../types';
 
 interface AICoachProps {
@@ -26,12 +26,11 @@ const AICoach: React.FC<AICoachProps> = ({ context, topicTitle, apiKey }) => {
     
     setChatInitialized(false);
     
-    // Check if API key is available
-    const hasApiKey = apiKey || 
-                      localStorage.getItem('gemini_api_key') || 
-                      ((window as any).ENV?.GEMINI_API_KEY && (window as any).ENV.GEMINI_API_KEY !== 'PLACEHOLDER_API_KEY');
+    // Check if API key is available using the service function
+    const keyAvailable = hasApiKey();
+    console.log('AICoach: API key available?', keyAvailable);
     
-    if (!hasApiKey) {
+    if (!keyAvailable) {
       setMessages(prev => [...prev, {
         id: 'no-key',
         role: 'model',
@@ -43,12 +42,13 @@ const AICoach: React.FC<AICoachProps> = ({ context, topicTitle, apiKey }) => {
     try {
         startChat(context);
         setChatInitialized(true);
+        console.log('AICoach: Chat initialized successfully');
     } catch (e) {
-        console.error("Failed to start chat", e);
+        console.error("AICoach: Failed to start chat", e);
         setMessages(prev => [...prev, {
             id: 'error',
             role: 'model',
-            text: "❌ 聊天初始化失败，请检查 API Key 是否正确。"
+            text: "❌ 聊天初始化失败，请检查 API Key 是否正确。错误: " + (e as Error).message
         }]);
     }
   }, [context, topicTitle, apiKey]);

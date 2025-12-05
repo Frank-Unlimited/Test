@@ -26,9 +26,16 @@ const getApiKey = (): string | undefined => {
 
 // Allow external API key update
 export const setApiKey = (apiKey: string) => {
+  console.log('Setting API key:', apiKey ? 'Key provided' : 'Empty key');
   currentApiKey = apiKey;
   genAI = null; // Reset to force re-initialization
   chatSession = null;
+};
+
+// Check if API key is available
+export const hasApiKey = (): boolean => {
+  const key = currentApiKey || getApiKey();
+  return !!key && key !== 'PLACEHOLDER_API_KEY';
 };
 
 const initializeGenAI = () => {
@@ -40,15 +47,27 @@ const initializeGenAI = () => {
 };
 
 export const startChat = (context: string) => {
+  const apiKey = currentApiKey || getApiKey();
+  console.log('Starting chat with API key:', apiKey ? 'Key found' : 'No key');
+  
   const ai = initializeGenAI();
-  if (!ai) throw new Error("API Key not found");
+  if (!ai) {
+    console.error('Failed to initialize GenAI - no API key');
+    throw new Error("API Key not found");
+  }
 
-  chatSession = ai.chats.create({
-    model: 'gemini-2.5-flash',
-    config: {
-      systemInstruction: context + " Respond in Chinese (Simplified). Keep answers concise, encouraging, and formatted with Markdown.",
-    },
-  });
+  try {
+    chatSession = ai.chats.create({
+      model: 'gemini-2.5-flash',
+      config: {
+        systemInstruction: context + " Respond in Chinese (Simplified). Keep answers concise, encouraging, and formatted with Markdown.",
+      },
+    });
+    console.log('Chat session created successfully');
+  } catch (error) {
+    console.error('Failed to create chat session:', error);
+    throw error;
+  }
 };
 
 export const sendMessage = async (message: string): Promise<string> => {
