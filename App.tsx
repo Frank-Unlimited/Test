@@ -585,7 +585,7 @@ const App: React.FC = () => {
           {/* Right Column: AI Coach */}
           <div className="lg:col-span-1">
              <div className="sticky top-8">
-                <AICoach context={section.geminiPromptContext} topicTitle={section.title} />
+                <AICoach context={section.geminiPromptContext} topicTitle={section.title} apiKey={userApiKey} />
              </div>
           </div>
 

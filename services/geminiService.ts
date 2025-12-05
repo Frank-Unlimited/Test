@@ -53,7 +53,7 @@ export const startChat = (context: string) => {
 
 export const sendMessage = async (message: string): Promise<string> => {
   if (!chatSession) {
-    throw new Error("Chat session not initialized");
+    return "请先配置 API Key 或等待聊天会话初始化。";
   }
 
   try {
@@ -61,7 +61,7 @@ export const sendMessage = async (message: string): Promise<string> => {
     return result.text || "抱歉，我没有听清，请再说一遍。";
   } catch (error) {
     console.error("Gemini Error:", error);
-    return "连接出现问题，请稍后再试。";
+    return "连接出现问题，请检查 API Key 是否正确或稍后再试。";
   }
 };
 

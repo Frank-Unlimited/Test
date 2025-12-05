@@ -6,33 +6,52 @@ import { ChatMessage } from '../types';
 interface AICoachProps {
   context: string;
   topicTitle: string;
+  apiKey?: string;
 }
 
-const AICoach: React.FC<AICoachProps> = ({ context, topicTitle }) => {
+const AICoach: React.FC<AICoachProps> = ({ context, topicTitle, apiKey }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [chatInitialized, setChatInitialized] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Reset chat when topic changes
+    // Reset chat when topic or API key changes
     setMessages([{
       id: 'init',
       role: 'model',
       text: `我是你的AI专属教练。关于${topicTitle}，你有什么具体想问的吗？`
     }]);
     
+    setChatInitialized(false);
+    
+    // Check if API key is available
+    const hasApiKey = apiKey || 
+                      localStorage.getItem('gemini_api_key') || 
+                      ((window as any).ENV?.GEMINI_API_KEY && (window as any).ENV.GEMINI_API_KEY !== 'PLACEHOLDER_API_KEY');
+    
+    if (!hasApiKey) {
+      setMessages(prev => [...prev, {
+        id: 'no-key',
+        role: 'model',
+        text: "⚠️ 请先在页面顶部配置你的 Gemini API Key 才能使用 AI 教练功能。"
+      }]);
+      return;
+    }
+    
     try {
         startChat(context);
+        setChatInitialized(true);
     } catch (e) {
-        console.error("Failed to start chat, likely missing API key", e);
+        console.error("Failed to start chat", e);
         setMessages(prev => [...prev, {
             id: 'error',
             role: 'model',
-            text: "注意：API Key 未检测到，请确保环境变量设置正确。"
-        }])
+            text: "❌ 聊天初始化失败，请检查 API Key 是否正确。"
+        }]);
     }
-  }, [context, topicTitle]);
+  }, [context, topicTitle, apiKey]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
