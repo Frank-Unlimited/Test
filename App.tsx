@@ -4,11 +4,19 @@ import { SECTIONS, ICONS } from './constants';
 import AICoach from './components/AICoach';
 import VoiceVisualizer from './components/VoiceVisualizer';
 import BackgroundEffects from './components/BackgroundEffects';
+import ApiKeySettings from './components/ApiKeySettings';
+import { setApiKey } from './services/geminiService';
 import { Menu, X, ChevronRight, Star, ShoppingBag, Ruler, Activity, Dumbbell, Sparkles, Video, PlayCircle, ExternalLink, Shirt, Footprints } from 'lucide-react';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>(Tab.HOME);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userApiKey, setUserApiKey] = useState<string>('');
+
+  const handleApiKeyChange = (apiKey: string) => {
+    setUserApiKey(apiKey);
+    setApiKey(apiKey);
+  };
 
   // --- Helper Components for Illustrations ---
 
@@ -295,6 +303,11 @@ const App: React.FC = () => {
              </div>
           </div>
         </header>
+
+        {/* API Key Settings */}
+        <div className="mb-6">
+          <ApiKeySettings onApiKeyChange={handleApiKeyChange} />
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column: Content */}

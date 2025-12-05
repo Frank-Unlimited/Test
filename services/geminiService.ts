@@ -2,20 +2,38 @@ import { GoogleGenAI, Chat } from "@google/genai";
 
 let genAI: GoogleGenAI | null = null;
 let chatSession: Chat | null = null;
+let currentApiKey: string | null = null;
 
-// Get API key from runtime environment (Docker) or build-time environment (dev)
+// Get API key from multiple sources (priority order)
 const getApiKey = (): string | undefined => {
-  // Check runtime environment (injected by Docker)
-  if (typeof window !== 'undefined' && (window as any).ENV?.GEMINI_API_KEY) {
-    return (window as any).ENV.GEMINI_API_KEY;
+  // 1. Check localStorage (user input)
+  if (typeof window !== 'undefined') {
+    const storedKey = localStorage.getItem('gemini_api_key');
+    if (storedKey) return storedKey;
   }
-  // Fallback to build-time environment (for local development)
+  
+  // 2. Check runtime environment (injected by Docker)
+  if (typeof window !== 'undefined' && (window as any).ENV?.GEMINI_API_KEY) {
+    const envKey = (window as any).ENV.GEMINI_API_KEY;
+    if (envKey && envKey !== 'PLACEHOLDER_API_KEY') {
+      return envKey;
+    }
+  }
+  
+  // 3. Fallback to build-time environment (for local development)
   return process.env.API_KEY || process.env.GEMINI_API_KEY;
 };
 
+// Allow external API key update
+export const setApiKey = (apiKey: string) => {
+  currentApiKey = apiKey;
+  genAI = null; // Reset to force re-initialization
+  chatSession = null;
+};
+
 const initializeGenAI = () => {
-  const apiKey = getApiKey();
-  if (!genAI && apiKey) {
+  const apiKey = currentApiKey || getApiKey();
+  if (!genAI && apiKey && apiKey !== 'PLACEHOLDER_API_KEY') {
     genAI = new GoogleGenAI({ apiKey });
   }
   return genAI;
