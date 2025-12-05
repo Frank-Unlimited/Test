@@ -291,7 +291,7 @@ const App: React.FC = () => {
                        </div>
                        <div className="p-2 border border-slate-200 rounded bg-white">
                          <span className="font-bold block text-pink-500">长形脸</span>
-                         脸长 > 脸宽<br/>适合：知性/清冷风
+                         脸长 &gt; 脸宽<br/>适合：知性/清冷风
                        </div>
                        <div className="p-2 border border-slate-200 rounded bg-white">
                          <span className="font-bold block text-pink-500">菱形脸</span>
