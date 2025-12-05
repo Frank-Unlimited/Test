@@ -60,7 +60,7 @@ export const startChat = (context: string) => {
     chatSession = ai.chats.create({
       model: 'gemini-2.5-flash',
       config: {
-        systemInstruction: context + " Respond in Chinese (Simplified). Keep answers concise, encouraging, and formatted with Markdown.",
+        systemInstruction: context + " Respond in Chinese (Simplified). Keep answers concise, encouraging, and use plain text format without Markdown syntax.",
       },
     });
     console.log('Chat session created successfully');
