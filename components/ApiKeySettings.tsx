@@ -35,6 +35,12 @@ const ApiKeySettings: React.FC<ApiKeySettingsProps> = ({ onApiKeyChange }) => {
       setHasKey(true);
       setIsEditing(false);
       onApiKeyChange(apiKey.trim());
+      // 提示用户刷新页面以应用新的 API key
+      setTimeout(() => {
+        if (confirm('API Key 已保存！是否刷新页面以应用更改？')) {
+          window.location.reload();
+        }
+      }, 100);
     }
   };
 
